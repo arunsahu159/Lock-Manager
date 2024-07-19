@@ -21,11 +21,15 @@ enum lockType
   SHARED,
   EXCLUSIVE 
 };
+
+
 enum lockStatus
 {
   GRANTED,
   WAITING
 };
+
+
 class lockable_resource
 {
 private:
@@ -64,9 +68,6 @@ public:
 };
 
 
-// Resource
-// type of lock
-// txnid
 
 
 // Definition of function
@@ -105,7 +106,6 @@ unordered_map<std::string, list<lockable_resource > > lock_table;
 
 /********************************************************************************************************************************/
 
-// Done
 void upgrade(std::string resource_name,int txn_id)
 {
   if (!(lock_table.find(resource_name) == lock_table.end()))  // Resource found in the lock table
@@ -149,9 +149,9 @@ void upgrade(std::string resource_name,int txn_id)
     lock_table[resource_name] = lst;
   }
 }
-// TODO: 
+
 void downgrade(std::string resource_name, int txn_id){
-    // cout<<"\033[103m"<<"Downgrade("<<resource_name<<","<<txn_id<<")"<<"\033[0m"<<endl;
+
 
     // Check if the resource is present in the lock table or not.
     if (lock_table.find(resource_name) != lock_table.end()){
@@ -188,8 +188,6 @@ void downgrade(std::string resource_name, int txn_id){
         }
         lock_table[resource_name] = lst;
     }
-    else
-        cout<<"\nThe resource is not present in the lock table to perform downgrade.\n"; 
 }
 
 void prnt(std:: string resource_name)
@@ -204,7 +202,9 @@ void prnt(std:: string resource_name)
       cout<<"Transaction ID:"<<txn_id<<" Locktype:"<<lt<<" "<<"LockStatus:"<<ls<<endl;
     }
 }
-
+/*
+NOTE: We are adding all the shared and granted transactions to front. Starvation can be issue in this demonstration 
+*/
 
 lockStatus lock(std::string resource_name,int txn_id,lockType lock_type)
 {
@@ -225,22 +225,18 @@ lockStatus lock(std::string resource_name,int txn_id,lockType lock_type)
     list<lockable_resource> lst;
     lst.emplace_back(lr);
     lock_table[resource_name] = lst;
-    // cout<<"First time added to the table"<<endl;
     return(retval);
   }
   // if the resource is there in lock_table
   else
   {
-    // cout<<"Already present "<<"Transaction id"<<txn_id<<endl;
     list<lockable_resource> lst = lock_table.at(resource_name);
     std::list<lockable_resource>::iterator iter;
     for(iter=lst.begin();iter!=lst.end();++iter)
     {
-      // int txn_id = iter->getTxnId();
       lockType lt = iter->getLockType();
       lockStatus ls = iter->getStatus();
 
-      // cout<<"Transaction ID:"<<txn_id<<"Locktype:"<<lt<<" "<<"LockStatus:"<<ls<<endl;
       /*
       1.check for lock compatability
       2.Grant if only if: Shared lock and asked for shared lock
@@ -265,7 +261,6 @@ lockStatus lock(std::string resource_name,int txn_id,lockType lock_type)
       }
       else // Exclusive and Not Compatible locks
       {
-        // cout<<"WAITING"<<endl;
         lockable_resource lr(txn_id,lock_type,retval);
         // Waiting Transactions are at end of the list
         lst.emplace_back(lr);
@@ -297,7 +292,8 @@ bool unlock(std::string resource_name,int txn_id)
         break;
       }
     }
-    /* The Way the Transactions are added in the list of lockable resource
+    /* 
+    The Way the Transactions are added in the list of lockable resource
     There are only two cases where the transactions status should be updated
 
     Case 1. The first transaction is in Exclusive State and Waiting, We need to update the
@@ -331,9 +327,7 @@ bool unlock(std::string resource_name,int txn_id)
       }
     }
     lock_table[resource_name] = lst;
-    // cout<<"Transactions succesfully deleted"<<endl;
     return true;
   }
-  // cout<<"No resource found in the lock table"<<endl;
   return false;
 }

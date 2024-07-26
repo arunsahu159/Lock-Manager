@@ -1,5 +1,7 @@
 /* 
 Goal : Build a lock manager. 
+Author: Arun Ranjan Sahu
+Date: 30/03/2023
 The lock manager should support the following capabilities:
 1. Lock a resource in either shared or exclusive mode. 
 2. Unlock a resource held by a transaction. 
